@@ -1,13 +1,15 @@
 from supabase import create_client, Client
+from dotenv import load_dotenv, dotenv_values
+import os
+
+load_dotenv()
 
 #For Testing locally:
 #Will be changed to my prod server
 URL = "http://localhost:8000"
 
-#Not ready for prod yet. Key is there for ease, will be using a .env file if deployed.
-#DB is hosted locally, no external connections atm
-KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyAgCiAgICAicm9sZSI6ICJzZXJ2aWNlX3JvbGUiLAogICAgImlzcyI6ICJzdXBhYmFzZS1kZW1vIiwKICAgICJpYXQiOiAxNjQxNzY5MjAwLAogICAgImV4cCI6IDE3OTk1MzU2MDAKfQ.DaYlNEoUrrEn2Ig7tqibS-PHK5vgusbcbo7X36XVt4Q"
-
+#Using .env for prod
+KEY = os.getenv("SUPABASE_KEY")
 #Using Constant for SUPABASE creds since it will never be changed by the script. Used multiple times
 SUPABASE: Client = create_client(URL, KEY)
 
