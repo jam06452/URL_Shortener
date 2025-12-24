@@ -7,11 +7,11 @@ app = FastAPI()
 
 #API for generating an encoded string from an URL with POST requests.
 @app.post("/make_url")
-def make(encoded: str):
-    return backend.encoder(encoded.lower())
+def make(url: str):
+    return backend.encoder(url.lower())
 
 #Remove this on production branch, just for testing
-@app.get("/make/{decoded}")
+@app.get("/make/{decoded:path}")
 def getmake(decoded: str):
     return backend.encoder(decoded.lower())
 

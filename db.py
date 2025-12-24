@@ -6,7 +6,7 @@ load_dotenv()
 
 #For Testing locally:
 #Will be changed to my prod server
-URL = "http://localhost:8000"
+URL = os.getenv("SUPABASE_ADDRESS")
 
 #Using .env for prod
 KEY = os.getenv("SUPABASE_KEY")
