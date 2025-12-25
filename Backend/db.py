@@ -4,11 +4,8 @@ import os
 
 load_dotenv()
 
-#For Testing locally:
-#Will be changed to my prod server
-URL = os.getenv("SUPABASE_ADDRESS")
-
 #Using .env for prod
+URL = os.getenv("SUPABASE_ADDRESS")
 KEY = os.getenv("SUPABASE_KEY")
 
 if not URL or not KEY:
