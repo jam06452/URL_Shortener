@@ -19,6 +19,7 @@ app.add_middleware(
 def make(url: str):
     return backend.encoder(url.lower())
 
+# API for getting the amount of times a link was clicked
 @app.get("/Clicks/{encoded}")
 def get_clicks(encoded: str):
     clicks = backend.db.get_clicks(encoded)
