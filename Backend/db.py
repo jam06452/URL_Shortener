@@ -38,3 +38,6 @@ def read_decode(encoded):
         return response.data[0]["Decoded"]
     else:
         return None
+    
+def click(encoded):
+    SUPABASE.rpc("click_counter", {"encoded_input": encoded}).execute()

@@ -30,6 +30,7 @@ def getmake(decoded: str):
 def redirect(encoded: str):
     url = backend.decoder(encoded)
     if url is not None:
+        backend.db.click(encoded)
         return RedirectResponse(url)
     else:
         raise HTTPException(status_code=404, detail="URL not found")
