@@ -17,7 +17,7 @@ app.add_middleware(
 #API for generating an encoded string from an URL with POST requests.
 @app.post("/make_url")
 def make(url: str):
-    return backend.encoder(url.lower())
+    return {url: backend.encoder(url.lower())}
 
 # API for getting the amount of times a link was clicked
 @app.get("/clicks/{encoded}")
@@ -32,7 +32,7 @@ def get_clicks(encoded: str):
 #Remove this on production branch, just for testing
 @app.get("/make/{decoded:path}")
 def getmake(decoded: str):
-    return backend.encoder(decoded.lower())
+    return {decoded: backend.encoder(decoded.lower())}
 
 #This redirects to the real website when you enter an encoded string after the url. "https://lh/encoded_string"
 #Keep /{short_url} at the end 
