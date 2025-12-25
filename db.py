@@ -41,7 +41,3 @@ def read_decode(encoded):
         return response.data[0]["Decoded"]
     else:
         return None
-
-
-    
-    
