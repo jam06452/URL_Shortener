@@ -41,3 +41,11 @@ def read_decode(encoded):
     
 def click(encoded):
     SUPABASE.rpc("click_counter", {"encoded_input": encoded}).execute()
+
+def get_clicks(encoded):
+    response = SUPABASE.table("URL_Shortener").select("Clicks").eq("Encoded", encoded).execute()
+    
+    if response.data:
+        return response.data[0]["Clicks"]
+    else:
+        return None

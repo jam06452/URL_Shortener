@@ -19,6 +19,14 @@ app.add_middleware(
 def make(url: str):
     return backend.encoder(url.lower())
 
+@app.get("/Clicks/{encoded}")
+def get_clicks(encoded: str):
+    clicks = backend.db.get_clicks(encoded)
+    if clicks is not None:
+        return {"Clicks": clicks}
+    else:
+        raise HTTPException(status_code=404, detail="URL not found")
+
 #Remove this on production branch, just for testing
 @app.get("/make/{decoded:path}")
 def getmake(decoded: str):
