@@ -17,8 +17,19 @@ document.getElementById('shorten-form').addEventListener('submit', async functio
             const textNode = document.createTextNode('Shortened URL: ');
             const link = document.createElement('a');
             link.href = shortUrl;
-            link.target = '_blank';
             link.textContent = shortUrl;
+            link.style.cursor = 'pointer';
+            
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                navigator.clipboard.writeText(shortUrl).then(() => {
+                    const originalText = link.textContent;
+                    link.textContent = 'Copied!';
+                    setTimeout(() => {
+                        link.textContent = originalText;
+                    }, 1500);
+                });
+            });
             
             resultDiv.appendChild(textNode);
             resultDiv.appendChild(link);
