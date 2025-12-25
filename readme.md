@@ -1,5 +1,7 @@
 # URL Shortener API Documentation
-## AI Gen
+## AI Generated code
+- readme.md
+- frontend
 
 ## Overview
 This API provides a simple service to shorten URLs using a Base36 encoding algorithm. It is built with FastAPI and uses Supabase as the backend database.

@@ -4,14 +4,24 @@ document.getElementById('shorten-form').addEventListener('submit', async functio
     const resultDiv = document.getElementById('result');
     
     try {
-        const response = await fetch(`http://localhost:8080/make_url?url=${encodeURIComponent(urlInput)}`, {
+        const response = await fetch(`${config.API_BASE_URL}/make_url?url=${encodeURIComponent(urlInput)}`, {
             method: 'POST'
         });
         
         if (response.ok) {
             const shortCode = await response.json();
-            const shortUrl = `http://localhost:8080/${shortCode}`;
-            resultDiv.innerHTML = `Shortened URL: <a href="${shortUrl}" target="_blank">${shortUrl}</a>`;
+            const shortUrl = `${config.API_BASE_URL}/${shortCode}`;
+            
+            // Clear previous results and safely build DOM elements
+            resultDiv.textContent = '';
+            const textNode = document.createTextNode('Shortened URL: ');
+            const link = document.createElement('a');
+            link.href = shortUrl;
+            link.target = '_blank';
+            link.textContent = shortUrl;
+            
+            resultDiv.appendChild(textNode);
+            resultDiv.appendChild(link);
         } else {
             resultDiv.innerText = 'Error shortening URL';
         }
