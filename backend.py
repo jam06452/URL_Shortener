@@ -1,51 +1,49 @@
-import json
 import zlib
+#db is seperate script for handling supabase operations
+import db
 
-def hash(decoded):
+#Encodes the string
+#Input -> sanitize -> hash function -> output
+def encoder(decoded):
+        if not (decoded.startswith("https://") or decoded.startswith("http://")):
+            decoded = f"https://{decoded}"
+        exist = db.read_encode(decoded)
+
+        if exist is not None:
+             return exist
+        else:
+            encoded = gen_hash(decoded)
+            db.save(encoded, decoded)
+            return encoded
+
+#Searches for hash in DB
+#Checks if it exists, if true returns it, if false returns None
+def decoder(encoded):
+    #Reduces DB searches from 2 to 1 by making it a var instead of calling twice
+    exist = db.read_decode(encoded)
+
+    if exist:
+        return exist
+    else:
+        return None
+
+#Input -> Shortened Hashed Output
+def gen_hash(decoded):
     number = zlib.crc32(decoded.encode())
+    #base36, URLs do not need capital letters, support maybe added for other chars in the future
     alph = "0123456789abcdefghijklmnopqrstuvwxyz"
 
     chars = []
-
+    if number == 0:
+        return alph[0]
+    
+    #Hash Function
     while number > 0:
         number, remainder = divmod(number, 36)
         char = alph[remainder]
         chars.append(char)
-
-    enc = "".join(reversed(chars))
+    #Hash is reversed since the way it was hashed, have to reverse it for it to be the right way around.
+    #Basic Example: 12345 -> 54321 makes sense if it is reversed back to 12345
+    encoded = "".join(reversed(chars))
     
-    return enc
-
-def encoder(decoded):
-    storage = {}
-
-    with open("db.json", "r") as file:
-        storage = json.load(file)
-        file.close()
-
-    print(json)
-
-    if decoded in storage.values():
-        for k, v in storage.items():
-            if v == decoded:
-                return k
-    else:
-        encoded = hash(decoded)
-        storage[encoded] = f"https://{decoded}"
-
-        with open("db.json", "w") as file:
-            json.dump(storage, file, indent=4)
-            file.close()
-        return encoded
-    
-def decoder(encoded):
-    storage = {}
-
-    with open("db.json", "r") as file:
-        storage = json.load(file)
-        file.close()
-
-    if encoded in storage:
-        return storage[encoded]
-    else:
-        return None
+    return encoded
