@@ -14,6 +14,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.get("/")
+def health():
+    return {"Status": "Healthy"}
+
 #API for generating an encoded string from an URL with POST requests.
 @app.post("/make_url")
 def make(url: str):
