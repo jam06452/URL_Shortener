@@ -29,11 +29,6 @@ def get_clicks(encoded: str):
     else:
         return {"Clicks": "Not Found"}
 
-#Remove this on production branch, just for testing
-@app.get("/make/{decoded:path}")
-def getmake(decoded: str):
-    return {decoded: backend.encoder(decoded.lower())}
-
 #This redirects to the real website when you enter an encoded string after the url. "https://lh/encoded_string"
 #Keep /{short_url} at the end 
 @app.get("/{encoded}")
