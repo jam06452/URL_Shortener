@@ -4,9 +4,8 @@ import os
 
 load_dotenv()
 
-URL = os.getenv("SUPABASE_ADDRESS")
-
 #Using .env for prod
+URL = os.getenv("SUPABASE_ADDRESS")
 KEY = os.getenv("SUPABASE_KEY")
 
 if not URL or not KEY:
@@ -37,5 +36,16 @@ def read_decode(encoded):
 
     if response.data:
         return response.data[0]["Decoded"]
+    else:
+        return None
+    
+def click(encoded):
+    SUPABASE.rpc("click_counter", {"encoded_input": encoded}).execute()
+
+def get_clicks(encoded):
+    response = SUPABASE.table("URL_Shortener").select("Clicks").eq("Encoded", encoded).execute()
+
+    if response.data != []:
+        return response.data[0]["Clicks"]
     else:
         return None

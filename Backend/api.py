@@ -17,7 +17,17 @@ app.add_middleware(
 #API for generating an encoded string from an URL with POST requests.
 @app.post("/make_url")
 def make(url: str):
-    return backend.encoder(url.lower())
+    return {url: backend.encoder(url.lower())}
+
+# API for getting the amount of times a link was clicked
+@app.get("/clicks/{encoded}")
+def get_clicks(encoded: str):
+    clicks = backend.db.get_clicks(encoded)
+    #Checking for null does not work, backend returns None which gets converted to null when returned to front
+    if clicks is not None:
+        return {"Clicks": clicks}
+    else:
+        return {"Clicks": "Not Found"}
 
 #This redirects to the real website when you enter an encoded string after the url. "https://lh/encoded_string"
 #Keep /{short_url} at the end 
@@ -25,6 +35,7 @@ def make(url: str):
 def redirect(encoded: str):
     url = backend.decoder(encoded)
     if url is not None:
+        backend.db.click(encoded)
         return RedirectResponse(url)
     else:
         raise HTTPException(status_code=404, detail="URL not found")
