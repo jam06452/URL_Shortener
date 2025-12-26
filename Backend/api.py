@@ -8,23 +8,19 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://url.jam06452.uk", "http://url.jam06452.uk"],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
 
-@app.get("/")
-def health():
-    return {"Status": "Healthy"}
-
 #API for generating an encoded string from an URL with POST requests.
-@app.post("/make_url")
+@app.post("/url_shortener/make_url")
 def make(url: str):
     return {url: backend.encoder(url.lower())}
 
 # API for getting the amount of times a link was clicked
-@app.get("/clicks/{encoded}")
+@app.get("/url_shortener/clicks/{encoded}")
 def get_clicks(encoded: str):
     clicks = backend.db.get_clicks(encoded)
     #Checking for null does not work, backend returns None which gets converted to null when returned to front
@@ -35,7 +31,7 @@ def get_clicks(encoded: str):
 
 #This redirects to the real website when you enter an encoded string after the url. "https://lh/encoded_string"
 #Keep /{short_url} at the end 
-@app.get("/{encoded}")
+@app.get("/url_shortener/{encoded}")
 def redirect(encoded: str):
     url = backend.decoder(encoded)
     if url is not None:
