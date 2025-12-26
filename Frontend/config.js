@@ -1,3 +1,3 @@
 const config = {
-    API_BASE_URL: "http://localhost:8080"
+    API_BASE_URL: "https://api.jam06452.uk/url_shortener"
 };
