@@ -1,27 +1,28 @@
 export async function onRequest(context) {
   const url = new URL(context.request.url);
 
-  // 1. DEFINE STATIC RULES
-  // If it is the root OR has a file extension (like .js, .css, .png), serve static.
-  // This prevents /p9zs6t from falling into the "SPA" trap.
-  const isRoot = url.pathname === "/";
-  const isFile = url.pathname.includes("."); // Simple check: does it have a dot?
+  // 1. Static Asset Check (Keep this)
+  const isStatic = 
+    url.pathname === "/" || 
+    url.pathname.includes(".") || 
+    url.pathname.startsWith("/assets");
 
-  if (isRoot || isFile) {
+  if (isStatic) {
     return context.next();
   }
 
-  // 2. PROXY LOGIC
-  // If we are here, it is a path like /p9zs6t with no extension.
-  // We assume this is a shortcode for the API.
-
+  // 2. API Proxy
   const origin = "https://api.jam06452.uk";
-  
-  // Construct the API path (e.g., /url_shortener/p9zs6t)
   const fullPath = "/url_shortener" + url.pathname + url.search;
   const destination = new URL(fullPath, origin);
 
+  // Create the new request
   const newRequest = new Request(destination, context.request);
 
-  return fetch(newRequest);
+  // 3. EXECUTE FETCH WITH MANUAL REDIRECT
+  // This tells the worker: "If the API sends a 301/302, don't follow it. Just return it."
+  const response = await fetch(newRequest, { redirect: "manual" });
+
+  // 4. Return the API's response (which contains the 301/302 Location header)
+  return response;
 }
