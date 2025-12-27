@@ -78,3 +78,8 @@ Redirect to the original URL.
 
 - **Frontend**: Deployed to Cloudflare Pages.
 - **Backend**: Containerized using Docker and deployed locally.
+
+## Roadmap
+
+- Pings to ensure websites are real
+- Redis caching for the most used addresses
