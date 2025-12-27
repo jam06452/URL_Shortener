@@ -11,7 +11,7 @@ document.getElementById('shorten-form').addEventListener('submit', async functio
         if (response.ok) {
             const data = await response.json();
             const shortCode = Object.values(data)[0];
-            const shortUrl = `${config.API_BASE_URL}/${shortCode}`;
+            const shortUrl = `https://url.jam06452.uk/${shortCode}`;
             
             // Clear previous results and safely build DOM elements
             resultDiv.textContent = '';
