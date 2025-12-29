@@ -9,7 +9,6 @@ defmodule Exapi.Application do
   def start(_type, _args) do
     children = [
       ExapiWeb.Telemetry,
-      #Exapi.Repo,
       {DNSCluster, query: Application.get_env(:exapi, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: Exapi.PubSub},
       # Start a worker by calling: Exapi.Worker.start_link(arg)

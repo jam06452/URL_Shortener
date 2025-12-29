@@ -5,6 +5,7 @@ A simple and efficient URL shortener service built with Python (FastAPI) and Jav
 ## AI Generated Files
 - readme.md
 - Fronted & functions
+- Elixir Dockerfiles
 
 ## 🚀 Features
 
