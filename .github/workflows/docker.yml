@@ -14,7 +14,7 @@ env:
 jobs:
   build:
     name: Build & Push Docker Image
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     permissions:
       contents: read
       packages: write
@@ -34,5 +34,4 @@ jobs:
         with:
           context: ./exapi
           push: true
-          platforms: linux/arm64
           tags: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest
