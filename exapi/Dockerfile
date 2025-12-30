@@ -42,7 +42,7 @@ WORKDIR /app
 COPY --from=builder /app/_build/prod/rel/exapi ./
 
 ENV HOME=/app
-ENV PORT=4001
+ENV PORT=4000
 
 # REVERTED CMD: No ". .env" here. Just start the app.
 CMD ["bin/exapi", "start"]
