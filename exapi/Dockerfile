@@ -1,5 +1,6 @@
 FROM elixir:1.15-alpine AS builder
 
+ENV ERL_AFLAGS="-jit false"
 ENV MIX_ENV=prod
 WORKDIR /app
 
