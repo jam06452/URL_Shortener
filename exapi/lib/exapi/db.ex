@@ -1,8 +1,9 @@
 defmodule Exapi.DB do
 
   def client do
-      config = Application.get_env(:exapi, :supabase)
-      {:ok, client} = Supabase.init_client(config[:url], config[:key])
+      url = System.get_env("SUPABASE_ADDRESS")
+      key = System.get_env("SUPABASE_KEY")
+      {:ok, client} = Supabase.init_client(url ,key)
       client
   end
 
