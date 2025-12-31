@@ -16,6 +16,9 @@ import Config
 #
 # Alternatively, you can use `mix phx.gen.release` to generate a `bin/server`
 # script that automatically sets the env var above.
+config :exapi, :supabase,
+  url: System.get_env("SUPABASE_ADDRESS"),
+  key: System.get_env("SUPABASE_KEY")
 
 if System.get_env("PHX_SERVER") do
   config :exapi, ExapiWeb.Endpoint, server: true
