@@ -4,3 +4,4 @@ test.py
 .wrangler
 node_modules
 .vscode
+.credo.exs
