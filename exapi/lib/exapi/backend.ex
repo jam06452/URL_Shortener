@@ -18,7 +18,7 @@ defmodule Exapi.Backend do
     end
   end
 
-  def decode(encoded), do: Exapi.DB.read_decoded(encoded)
+  def decode(encoded), do: (Exapi.DB.add_click(encoded); Exapi.DB.read_decoded(encoded))
 
   def get_clicks(encoded), do: Exapi.DB.get_clicks(encoded)
 end
