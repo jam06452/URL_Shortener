@@ -34,7 +34,7 @@ config :exapi, ExapiWeb.Endpoint,
 # to check this value into version control, so we use an environment
 # variable instead.
 secret_key_base =
-  System.get_env("SECRET_KEY_BASE") || "Q17pMKmSBvnU97jSeMbOzlKQkrBRiFxkN86XyxwQ2TqfmQOz/pZ0uBksz9ufUv5M"
+  System.get_env("SECRET_KEY_BASE")
 
 host = System.get_env("PHX_HOST") || "example.com"
 
