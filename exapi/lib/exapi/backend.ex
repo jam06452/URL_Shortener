@@ -1,22 +1,19 @@
 defmodule Exapi.Backend do
+
   def encode(url) do
-    # If url does not start with http:// or https://, prepend https://
-    url =
-      if not String.starts_with?(url, "http://") and not String.starts_with?(url, "https://"),
-        do: "https://" <> url,
-        else: url
+    encoded =
+      case Exapi.DB.read_encoded(url) do
+        # Assigns encoded to the encoded, hashed string of the url, then is saved
+        nil ->
+          encoded = url |> :erlang.crc32() |> Base36.encode() |> String.downcase()
+          Task.start(Exapi.DB, :save, [encoded, url])
+          encoded
 
-    case Exapi.DB.read_encoded(url) do
-      # Assigns encoded to the encoded, hashed string of the url, then is saved
-      nil ->
-        encoded = url |> :erlang.crc32() |> Base36.encode() |> String.downcase()
-        Exapi.DB.save(encoded, url)
-        Cachex.put(:cache, encoded, url)
-        encoded
-
-      encoded ->
-        encoded
-    end
+        encoded ->
+          encoded
+      end
+    Cachex.put(:cache, encoded, url)
+    encoded
   end
 
   #Calls click function on SB, tries to read from cache, if nil, read straight from DB and stores in cache
@@ -27,4 +24,12 @@ defmodule Exapi.Backend do
   end
 
   def get_clicks(encoded), do: Exapi.DB.get_clicks(encoded)
+
+  def clean(url) do
+  #Checks if url starts with http:// or https://, if not, prepends https://
+  url = String.replace_prefix(url, "www.", "")
+  url = if not String.starts_with?(url, ["http://", "https://"]), do: "https://" <> url, else: url
+  url
+  end
+
 end

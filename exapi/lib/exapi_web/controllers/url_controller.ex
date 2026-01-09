@@ -2,7 +2,7 @@ defmodule ExapiWeb.URLController do
   use ExapiWeb, :controller
 
   def make_url(conn, %{"url" => url}) do
-    encoded = Exapi.Backend.encode(url)
+    encoded = Exapi.Backend.encode(Exapi.Backend.clean(url))
     json(conn, %{encoded: encoded})
   end
 
