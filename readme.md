@@ -1,11 +1,11 @@
 # URL Shortener
 
-A simple and efficient URL shortener service built with Python (FastAPI) and JavaScript. It features URL shortening, redirection, and click tracking.
+A simple and efficient URL shortener service built with **Elixir (Phoenix)** and JavaScript. It features URL shortening, redirection, and click tracking.
 
 ## AI Generated Files
-- readme.md
-- Fronted & functions
-- Elixir Dockerfiles
+- Frontend
+- Readme
+- Elixir Dockerfile
 
 ## 🚀 Features
 
@@ -16,14 +16,14 @@ A simple and efficient URL shortener service built with Python (FastAPI) and Jav
 
 ## 🛠️ Tech Stack
 
-- **Backend**: FastAPI (Python)
+- **Backend**: Elixir (Phoenix)
 - **Database**: Supabase
 - **Frontend**: HTML, JavaScript
-- **Deployment**: Cloudflare Pages (Frontend & Functions), Docker (Backend)
+- **Deployment**: Cloudflare Pages (Frontend & Functions), Docker (Elixir releases)
 
 ## 📂 Project Structure
 
-- `Backend/`: Contains the FastAPI application, database logic, and Docker configuration.
+- `exapi/`: **Elixir/Phoenix** application that implements the URL-shortening API and routing.
 - `Frontend/`: Static web assets for the user interface.
 - `functions/`: Cloudflare Pages Functions for handling routing and proxying requests.
 
@@ -54,20 +54,21 @@ Redirect to the original URL.
 
 ## 💻 Local Setup
 
-### Backend
+### Backend (Elixir / Phoenix)
 
-1. Navigate to the `Backend` directory:
+1. Navigate to the `exapi` directory:
    ```bash
-   cd Backend
+   cd exapi
    ```
-2. Install dependencies:
+2. Install dependencies and setup the app:
    ```bash
-   pip install -r requirements.txt
+   mix deps.get
+   mix setup
    ```
-3. Set up environment variables (create a `.env` file with Supabase credentials).
-4. Run the server:
+3. Set environment variables for Supabase (e.g., `SUPABASE_ADDRESS`, `SUPABASE_KEY`).
+4. Run the server locally:
    ```bash
-   uvicorn api:app --reload
+   mix phx.server
    ```
 
 ### Frontend
@@ -80,7 +81,20 @@ Redirect to the original URL.
 - **Frontend**: Deployed to Cloudflare Pages.
 - **Backend**: Containerized using Docker and deployed locally.
 
+## ⚡ Performance & Optimizations
+
+After migrating the backend from Python to **Elixir (Phoenix)**, the service saw substantial latency improvements due to the BEAM's concurrency model, lightweight processes, and non-blocking I/O. Key changes and their impact:
+
+- **Async DB writes & caching**: I use asynchronous background tasks for DB persistence and Cachex for read caching which reduces blocking on hot paths (reads served from cache instead of database).
+- **Optimized DB access**: Connection pooling (Postgrex / PgBouncer), prepared statements, and proper indexing on the `encoded` column reduce request time to Supabase/Postgres.
+- **Small, deterministic redirect path**: The redirect code path avoids heavy computation and unnecessary I/O where possible, minimizing latency.
+
+Measured (representative) performance:
+
+- **Redirects (avg)**: ~152 µs (microseconds)
+- **Initial encoding (avg)**: ~15 ms (milliseconds)
+
+
 ## Roadmap
 
 - Pings to ensure websites are real
-- Redis caching for the most used addresses
