@@ -1,4 +1,5 @@
 defmodule Exapi.DB do
+  require Logger
   def client do
     config = Application.get_env(:exapi, :supabase)
     {:ok, client} = Supabase.init_client(config[:url], config[:key])
@@ -6,13 +7,16 @@ defmodule Exapi.DB do
   end
 
   def save(encoded, decoded) do
-    {:ok, response} =
+    response =
       Supabase.PostgREST.from(client(), "URL_Shortener_Dev")
       |> Supabase.PostgREST.insert(%{Encoded: encoded, Decoded: decoded})
       |> Map.put(:method, :post)
       |> Supabase.PostgREST.execute()
 
-    response
+    case response do
+      {:ok, response} -> response
+      {:error, reason} -> Logger.error(reason)
+    end
   end
 
   def read_encoded(url) do
