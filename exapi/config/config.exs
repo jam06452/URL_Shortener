@@ -7,6 +7,8 @@
 # General application configuration
 import Config
 
+config :exapi, :supabase_table, "URL_Shortener"
+
 # Configure the endpoint
 config :exapi, ExapiWeb.Endpoint,
   url: [host: "localhost"],

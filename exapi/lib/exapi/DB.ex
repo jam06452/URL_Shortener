@@ -1,5 +1,10 @@
 defmodule Exapi.DB do
   require Logger
+
+  def table do
+    Application.get_env(:exapi, :supabase_table)
+  end
+
   def client do
     config = Application.get_env(:exapi, :supabase)
     {:ok, client} = Supabase.init_client(config[:url], config[:key])
@@ -8,7 +13,7 @@ defmodule Exapi.DB do
 
   def save(encoded, decoded) do
     response =
-      Supabase.PostgREST.from(client(), "URL_Shortener_Dev")
+      Supabase.PostgREST.from(client(), table())
       |> Supabase.PostgREST.insert(%{Encoded: encoded, Decoded: decoded})
       |> Map.put(:method, :post)
       |> Supabase.PostgREST.execute()
@@ -21,7 +26,7 @@ defmodule Exapi.DB do
 
   def read_encoded(url) do
     {:ok, response} =
-      Supabase.PostgREST.from(client(), "URL_Shortener_Dev")
+      Supabase.PostgREST.from(client(), table())
       |> Supabase.PostgREST.select(["Encoded"])
       |> Supabase.PostgREST.eq("Decoded", url)
       |> Map.put(:method, :get)
@@ -35,7 +40,7 @@ defmodule Exapi.DB do
 
   def read_decoded(encoded) do
     {:ok, response} =
-      Supabase.PostgREST.from(client(), "URL_Shortener_Dev")
+      Supabase.PostgREST.from(client(), table())
       |> Supabase.PostgREST.select(["Decoded"])
       |> Supabase.PostgREST.eq("Encoded", encoded)
       |> Map.put(:method, :get)
@@ -49,7 +54,7 @@ defmodule Exapi.DB do
 
   def get_clicks(encoded) do
     {:ok, response} =
-      Supabase.PostgREST.from(client(), "URL_Shortener_Dev")
+      Supabase.PostgREST.from(client(), table())
       |> Supabase.PostgREST.select(["Clicks"])
       |> Supabase.PostgREST.eq("Encoded", encoded)
       |> Map.put(:method, :get)
