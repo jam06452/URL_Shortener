@@ -9,8 +9,6 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="interactive-bg"></div>
-
     <main class="container">
         <header>
             <h1 data-text="SHORTEN">SHORTEN</h1>
@@ -24,12 +22,12 @@
 
         <form id="shorten-form" class="input-group">
             <div class="input-wrapper">
-                <input type="str" id="url-input" placeholder="https://..." required autocomplete="off">
+                <input type="text" id="url-input" placeholder="https://..." required autocomplete="off">
             </div>
             <button type="submit">COMPRESS</button>
         </form>
 
-        <div id="result" class="result-container"></div>
+        <div id="result"></div>
     </main>
 
     <script src="config.js"></script>
@@ -37,12 +35,22 @@
 
     <script>
         const root = document.documentElement;
+        let rafPending = false;
+        let lastX = 0;
+        let lastY = 0;
+
         document.addEventListener('mousemove', (e) => {
-            // We use requestAnimationFrame for performance so it doesn't lag
-            requestAnimationFrame(() => {
-                root.style.setProperty('--mouse-x', e.clientX + "px");
-                root.style.setProperty('--mouse-y', e.clientY + "px");
-            });
+            lastX = e.clientX;
+            lastY = e.clientY;
+            
+            if (!rafPending) {
+                rafPending = true;
+                requestAnimationFrame(() => {
+                    root.style.setProperty('--mouse-x', lastX + "px");
+                    root.style.setProperty('--mouse-y', lastY + "px");
+                    rafPending = false;
+                });
+            }
         });
     </script>
 </body>
