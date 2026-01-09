@@ -3,6 +3,7 @@ defmodule Exapi.Backend do
 
   def encode(url) do
     Logger.info("Encoding URL: #{url}")
+
     encoded =
       case Exapi.DB.read_encoded(url) do
         # Assigns encoded to the encoded, hashed string of the url, then is saved
@@ -14,6 +15,7 @@ defmodule Exapi.Backend do
         encoded ->
           encoded
       end
+
     Logger.info("Encoded URL: #{encoded}")
     Cachex.put(:cache, encoded, url)
     encoded
