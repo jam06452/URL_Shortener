@@ -7,7 +7,8 @@
 # General application configuration
 import Config
 
-config :exapi, :supabase_table, "URL_Shortener"
+config :exapi, :supabase_table, "URL_Shortener_Dev"
+config :exapi, :message_table, "Messages_Dev"
 
 # Configure the endpoint
 config :exapi, ExapiWeb.Endpoint,
