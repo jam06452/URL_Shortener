@@ -24,9 +24,9 @@ defmodule Exapi.Backend do
 
   #Calls click function on SB, tries to read from cache, if nil, read straight from DB and stores in cache
   def decode(encoded, message) do
-    Logger.info("Decoding URL: #{encoded}")
     Task.start(Exapi.DB, :add_click, [encoded])
     {_, url} = Cachex.fetch(:cache, encoded, fn -> Exapi.DB.read_decoded(encoded, message) end)
+    Logger.info("Decoded URL #{url}}")
     url
   end
 
