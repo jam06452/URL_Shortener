@@ -18,8 +18,7 @@ defmodule ExapiWeb.URLController do
 
       nil -> conn |> put_status(:not_found) |> json(%{error: "URL not found"})
 
-      return -> if message, do: json(conn, %{message: return})
-      decoded -> redirect(conn, external: decoded)
+      decoded -> if message, do: json(conn, %{message: decoded}), else: redirect(conn, external: decoded)
     end
   end
 
