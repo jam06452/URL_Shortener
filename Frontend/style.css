@@ -245,11 +245,16 @@ h1:hover::after {
     66% { transform: translate(-2px, 1px); }
 }
 
+.header-links {
+    display: flex;
+}
+
 .repo-link {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
+    flex: 1;
     color: var(--bg-deep);
     background: var(--magenta);
     text-decoration: none;
@@ -265,6 +270,23 @@ h1:hover::after {
 .repo-link:hover {
     background: var(--yellow);
     letter-spacing: 0.15em;
+}
+
+.repo-link.flavour-town {
+    background: linear-gradient(90deg, #ff6b35, #ff4444, #ff6b35);
+    background-size: 200% 100%;
+    animation: flamePulse 2s ease-in-out infinite;
+    border-left: 2px solid var(--bg-deep);
+}
+
+.repo-link.flavour-town:hover {
+    background: var(--yellow);
+    animation: none;
+}
+
+@keyframes flamePulse {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
 }
 
 .repo-link svg {
