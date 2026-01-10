@@ -79,5 +79,11 @@ defmodule Exapi.DB do
     end
   end
 
-  def add_click(encoded), do: Supabase.PostgREST.rpc(client(), "click_counter", %{"encoded_input" => encoded}) |> Supabase.PostgREST.execute()
+  def add_click(encoded, message) do
+    if message do
+      Supabase.PostgREST.rpc(client(), "click_counter_message", %{"encoded_input" => encoded}) |> Supabase.PostgREST.execute()
+    else
+      Supabase.PostgREST.rpc(client(), "click_counter", %{"encoded_input" => encoded}) |> Supabase.PostgREST.execute()
+    end
+  end
 end
