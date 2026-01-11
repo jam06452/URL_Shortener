@@ -15,6 +15,16 @@ defmodule Exapi.DB do
     client
   end
 
+  def cachewarmer do
+    {_, response} =
+      Supabase.PostgREST.from(client(), table())
+      |> Supabase.PostgREST.select(["Decoded", "Encoded"])
+      |> Map.put(:method, :get)
+      |> Supabase.PostgREST.execute()
+    #Reads Encoded & Decoded from DB, looksup values into tuples, writes those tuples into cachex
+    Cachex.put_many(:cache, Enum.map(response.body, fn item -> url = item["Decoded"]; encoded = item["Encoded"]; {encoded, url} end))
+  end
+
   def save(encoded, decoded, message \\ false) do
     #If messages is true it saves to the message table instead of main
     table = if message, do: messages(), else: table()

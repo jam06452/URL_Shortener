@@ -9,6 +9,8 @@ defmodule Exapi.Application do
   def start(_type, _args) do
     children = [
       {Cachex, name: :cache},
+      #Makes child spec with id as cachewarmer, restarts if fails, runs after cache init.
+      %{id: CacheWarmer, start: {Task, :start_link, [fn -> Exapi.DB.cachewarmer() end]}, restart: :transient},
       ExapiWeb.Telemetry,
       {DNSCluster, query: Application.get_env(:exapi, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: Exapi.PubSub},
