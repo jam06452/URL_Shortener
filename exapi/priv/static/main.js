@@ -121,19 +121,17 @@ form.addEventListener('submit', async function(e) {
 
     resultDiv.innerText = 'Verifying site reachability...';
 
-    // Verify availability (Ping)
     try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 5000);
+        const timeoutId = setTimeout(() => controller.abort(), 2000);
         
         await fetch(urlInputValue, { 
-            method: 'HEAD', 
+            method: 'GET', 
             mode: 'no-cors', 
             signal: controller.signal 
         });
         clearTimeout(timeoutId);
         
-        // If successful (or opaque response), proceed
         performShortening(urlInputValue);
         
     } catch (error) {
