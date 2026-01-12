@@ -5,6 +5,10 @@ defmodule ExapiWeb.Router do
     plug :accepts, ["json"]
   end
 
+  scope "/", ExapiWeb do
+    get "/", PageController, :index
+  end
+
   scope "/url_shortener", ExapiWeb do
     pipe_through :api
 
