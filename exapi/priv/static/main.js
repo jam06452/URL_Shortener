@@ -17,9 +17,10 @@ urlInput.addEventListener('input', () => {
 async function performShortening(urlInputValue, isMessage = false) {
     resultDiv.textContent = 'Compressing...';
     try {
-        const messageParam = isMessage ? '&message=true' : '';
-        const response = await fetch(`${config.API_BASE_URL}/make_url?url=${encodeURIComponent(urlInputValue)}${messageParam}`, {
-            method: 'POST'
+        const response = await fetch(`${config.API_BASE_URL}/make_url`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ url: urlInputValue, message: isMessage })
         });
         if (response.ok) {
             const data = await response.json();
