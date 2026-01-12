@@ -7,10 +7,6 @@ defmodule ExapiWeb.Router do
 
   scope "/", ExapiWeb do
     get "/", PageController, :index
-  end
-
-  scope "/url_shortener", ExapiWeb do
-    pipe_through :api
 
     post "/make_url", URLController, :make_url
     get "/:encoded", URLController, :visit
