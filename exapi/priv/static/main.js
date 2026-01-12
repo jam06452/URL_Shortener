@@ -46,26 +46,32 @@ async function performShortening(urlInputValue, isMessage = false) {
             resultDiv.appendChild(link);
         } else {
             // Try to extract error details from response
-            let errorMsg = 'Error shortening URL.';
+            let errorMsg = `Failed to shorten URL (HTTP ${response.status} ${response.statusText})`;
+            let serverDetail = '';
             try {
-                const errData = await response.json();
+                const errData = await response.clone().json();
                 if (errData && errData.error) {
-                    errorMsg += ` Server says: ${errData.error}`;
+                    serverDetail = errData.error;
                 } else if (errData && errData.message) {
-                    errorMsg += ` Server says: ${errData.message}`;
+                    serverDetail = errData.message;
+                } else {
+                    serverDetail = JSON.stringify(errData);
                 }
             } catch (jsonErr) {
-                // Not JSON, try text
                 try {
-                    const errText = await response.text();
-                    if (errText) {
-                        errorMsg += ` Server response: ${errText}`;
+                    const errText = await response.clone().text();
+                    if (errText && errText.length < 200) {
+                        serverDetail = errText;
                     }
                 } catch (textErr) {
                     // Ignore
                 }
             }
+            if (serverDetail) {
+                errorMsg += `\nDetails: ${serverDetail}`;
+            }
             resultDiv.innerText = errorMsg;
+            resultDiv.style.color = '#ff4444';
             console.error('Shorten error:', response.status, errorMsg);
         }
     } catch (error) {
