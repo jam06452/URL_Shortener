@@ -16,18 +16,16 @@ urlInput.addEventListener('input', () => {
 
 async function performShortening(urlInputValue, isMessage = false) {
     resultDiv.textContent = 'Compressing...';
-    
     try {
-        const messageParam = isMessage ? '&message=true' : '';
-        const response = await fetch(`${config.API_BASE_URL}/make_url?url=${encodeURIComponent(urlInputValue)}${messageParam}`, {
-            method: 'POST'
+        const response = await fetch(`${config.API_BASE_URL}/make_url`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ url: urlInputValue, message: isMessage })
         });
-        
         if (response.ok) {
             const data = await response.json();
             const shortCode = Object.values(data)[0];
             const shortUrl = `https://url.jam06452.uk/${shortCode}`;
-            
             // Clear previous results and safely build DOM elements
             resultDiv.textContent = '';
             const textNode = document.createTextNode('Shortened URL: ');
@@ -35,7 +33,6 @@ async function performShortening(urlInputValue, isMessage = false) {
             link.href = shortUrl;
             link.textContent = shortUrl;
             link.style.cursor = 'pointer';
-            
             link.addEventListener('click', (e) => {
                 e.preventDefault();
                 navigator.clipboard.writeText(shortUrl).then(() => {
@@ -46,15 +43,49 @@ async function performShortening(urlInputValue, isMessage = false) {
                     }, 1500);
                 });
             });
-            
             resultDiv.appendChild(textNode);
             resultDiv.appendChild(link);
         } else {
-            resultDiv.innerText = 'Error shortening URL';
+            // Try to extract error details from response
+            let errorMsg = `Failed to shorten URL (HTTP ${response.status} ${response.statusText})`;
+            let serverDetail = '';
+            try {
+                const errData = await response.clone().json();
+                if (errData && errData.error) {
+                    serverDetail = errData.error;
+                } else if (errData && errData.message) {
+                    serverDetail = errData.message;
+                } else {
+                    serverDetail = JSON.stringify(errData);
+                }
+            } catch (jsonErr) {
+                try {
+                    const errText = await response.clone().text();
+                    if (errText && errText.length < 200) {
+                        serverDetail = errText;
+                    }
+                } catch (textErr) {
+                    // Ignore
+                }
+            }
+            if (serverDetail) {
+                errorMsg += `\nDetails: ${serverDetail}`;
+            }
+            resultDiv.innerText = errorMsg;
+            resultDiv.style.color = '#ff4444';
+            console.error('Shorten error:', response.status, errorMsg);
         }
     } catch (error) {
-        console.error('Error:', error);
-        resultDiv.innerText = 'Error connecting to server. Make sure the backend is running and CORS is enabled.';
+        let errorMsg = 'Error connecting to server.';
+        if (error.name === 'TypeError') {
+            errorMsg += ' (Network error or CORS issue)';
+        } else if (error.name === 'AbortError') {
+            errorMsg += ' (Request timed out)';
+        } else {
+            errorMsg += ` (${error.message})`;
+        }
+        resultDiv.innerText = errorMsg;
+        console.error('Error during shortening:', error);
     }
 }
 
@@ -90,19 +121,18 @@ form.addEventListener('submit', async function(e) {
 
     resultDiv.innerText = 'Verifying site reachability...';
 
-    // Verify availability (Ping)
     try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 5000);
+        const timeoutId = setTimeout(() => controller.abort(), 2000);
         
         await fetch(urlInputValue, { 
-            method: 'HEAD', 
-            mode: 'no-cors', 
+            method: 'GET', 
+            mode: 'no-cors',
+            credentials: 'omit',
             signal: controller.signal 
         });
         clearTimeout(timeoutId);
         
-        // If successful (or opaque response), proceed
         performShortening(urlInputValue);
         
     } catch (error) {

@@ -44,13 +44,6 @@ mix phx.server
 - Free Oracle VM for backend
 - Both use GitHub actions for auto deployment on main branch
 
-## Project Structure
-### exapi - Elixir & Phoenix
-### Frontend - HTML, CSS & JS
-### functions - Cloudflare Pages setup Function
-### Backend-Python - First PoC in python with fastAPI
-
-
 ## AI Generated Files
 - Frontend
 - Dockerfile for elixir
