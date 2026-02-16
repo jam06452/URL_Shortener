@@ -272,14 +272,14 @@ h1:hover::after {
     letter-spacing: 0.15em;
 }
 
-.repo-link.flavour-town {
+.repo-link.flavortown {
     background: linear-gradient(90deg, #ff6b35, #ff4444, #ff6b35);
     background-size: 200% 100%;
     animation: flamePulse 2s ease-in-out infinite;
     border-left: 2px solid var(--bg-deep);
 }
 
-.repo-link.flavour-town:hover {
+.repo-link.flavortown:hover {
     background: var(--yellow);
     animation: none;
 }
