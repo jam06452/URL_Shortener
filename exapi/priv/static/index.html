@@ -1,62 +1,204 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#000000">
-    <meta name="description" content="Brutalist URL shortener with cyber aesthetics">
-    <title>SHORTEN // URL</title>
-    <link rel="stylesheet" href="/style.css">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Fts3 - S3 Bucket File Uploader</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&display=swap"
+        rel="stylesheet">
+
+    <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
-    <main class="container">
-        <header>
-            <h1 data-text="SHORTEN">SHORTEN</h1>
-            <div class="header-links">
-                <a href="https://url.jam06452.uk/3lam2v" class="repo-link" target="_blank" rel="noopener noreferrer">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
-                    </svg>
-                    GitHub Repo
-                </a>
-                <a href="https://url.jam06452.uk/1irkljl" class="repo-link flavortown" target="_blank" rel="noopener noreferrer">
-                    🔥 Flavortown
-                </a>
+    <main class="main">
+
+        <div class="centerCard">
+
+            <h1 class="titleHeader">S3 Bucket File Uploader</h1>
+
+            <div class="cardContent">
+
+
+                <div class="fileSelector">
+                    <img class="uploadIMG" src="uploadIcon.png" alt="">
+                    <h2 class="selectFile">Press here to select File</h2>
+                    <input class="fileinput" type="file" id="fileInput">
+                </div>
+
+
+                <div class="rightItems">
+                    <div id="status" hidden>
+                        <h2 class="panelTitle">Upload Status</h2>
+                        <p id="statusText">Ready</p>
+                        <div class="progressBar">
+                            <div id="progressFill"></div>
+                        </div>
+                        <p id="progressText">0%</p>
+                        <p id="uploadSpeed">Speed: 0 MB/s</p>
+                    </div>
+
+                    <div id="result" hidden>
+                        <h2 class="panelTitle">Result:</h2>
+                        <p id="resultText"></p>
+                        <div id="urlContainer" hidden>
+                            <h3 class="panelSubtitle">File Access URL</h3>
+                            <input type="text" id="publicUrl" readonly>
+                            <button id="copyUrlBtn">Copy URL</button>
+                            <a id="downloadBtn" href="#" target="_blank">Open Link</a>
+                        </div>
+                    </div>
+                </div>
+
             </div>
-        </header>
 
-        <form id="shorten-form" class="input-group">
-            <div class="input-wrapper">
-                <input type="text" id="url-input" placeholder="https://..." required autocomplete="off">
-            </div>
-            <button type="submit">SHORTEN</button>
-        </form>
+            <script>
+                const CHUNK_SIZE = 5 * 1024 * 1024;
+                const MAX_RETRIES = 3;
+                const RETRY_DELAY = 1000;
 
-        <div id="result"></div>
-    </main>
+                const fileInput = document.getElementById('fileInput');
+                const uploadBtn = document.getElementById('uploadBtn');
+                const status = document.getElementById('status');
+                const statusText = document.getElementById('statusText');
+                const progressFill = document.getElementById('progressFill');
+                const progressText = document.getElementById('progressText');
+                const uploadSpeed = document.getElementById('uploadSpeed');
+                const result = document.getElementById('result');
+                const resultText = document.getElementById('resultText');
 
-    <script src="/config.js"></script>
-    <script src="/main.js"></script>
+                uploadBtn.addEventListener('click', function () {
+                    const file = fileInput.files[0];
+                    if (!file) {
+                        alert('Please select a file');
+                        return;
+                    }
+                    if (file.size === 0) {
+                        alert('File is empty');
+                        return;
+                    }
 
-    <script>
-        const root = document.documentElement;
-        let rafPending = false;
-        let lastX = 0;
-        let lastY = 0;
-
-        document.addEventListener('mousemove', (e) => {
-            lastX = e.clientX;
-            lastY = e.clientY;
-            
-            if (!rafPending) {
-                rafPending = true;
-                requestAnimationFrame(() => {
-                    root.style.setProperty('--mouse-x', lastX + "px");
-                    root.style.setProperty('--mouse-y', lastY + "px");
-                    rafPending = false;
+                    status.hidden = false;
+                    result.hidden = true;
+                    uploadFile(file);
                 });
-            }
-        });
-    </script>
+
+                function uploadFile(file) {
+                    const uploadId = generateUploadId();
+                    const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
+                    let uploadedChunks = 0;
+                    let startTime = Date.now();
+
+                    statusText.textContent = `Uploading ${file.name} (${formatBytes(file.size)}) in ${totalChunks} chunks...`;
+
+                    function uploadChunk(chunkIndex, retryCount = 0) {
+                        const start = chunkIndex * CHUNK_SIZE;
+                        const end = Math.min(start + CHUNK_SIZE, file.size);
+                        const chunk = file.slice(start, end);
+
+                        const formData = new FormData();
+                        formData.append('chunk', chunk);
+                        formData.append('chunk_number', chunkIndex);
+                        formData.append('total_chunks', totalChunks);
+                        formData.append('upload_id', uploadId);
+                        formData.append('filename', file.name);
+
+                        const controller = new AbortController();
+                        const timeoutId = setTimeout(() => controller.abort(), 30000);
+
+                        fetch('/upload', {
+                            method: 'POST',
+                            body: formData,
+                            signal: controller.signal
+                        })
+                            .then(response => {
+                                clearTimeout(timeoutId);
+                                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                                return response.json();
+                            })
+                            .then(data => {
+                                if (data.error) throw new Error(data.error);
+
+                                uploadedChunks++;
+                                const progress = (uploadedChunks / totalChunks) * 100;
+                                progressFill.style.width = progress + '%';
+                                progressText.textContent = progress.toFixed(1) + '%';
+
+                                const elapsedSeconds = (Date.now() - startTime) / 1000;
+                                const uploadedBytes = uploadedChunks * CHUNK_SIZE;
+                                const speed = elapsedSeconds > 0 ? uploadedBytes / elapsedSeconds / (1024 * 1024) : 0;
+                                uploadSpeed.textContent = `Speed: ${speed.toFixed(2)} MB/s`;
+
+                                statusText.textContent = `Chunk ${uploadedChunks} of ${totalChunks} complete`;
+
+                                if (uploadedChunks < totalChunks) {
+                                    uploadChunk(uploadedChunks);
+                                } else {
+                                    const elapsedMs = Date.now() - startTime;
+                                    const totalMB = file.size / (1024 * 1024);
+                                    const avgSpeed = (totalMB / elapsedMs) * 1000;
+                                    statusText.textContent = `Upload complete: ${file.name}`;
+                                    resultText.textContent = `Successfully uploaded ${file.name}. Size: ${formatBytes(file.size)}. Avg Speed: ${avgSpeed.toFixed(2)} MB/s`;
+                                    result.hidden = false;
+
+                                    if (data.public_url) {
+                                        const urlInput = document.getElementById('publicUrl');
+                                        const downloadBtn = document.getElementById('downloadBtn');
+                                        urlInput.value = data.public_url;
+                                        downloadBtn.href = data.public_url;
+                                        document.getElementById('urlContainer').hidden = false;
+                                    }
+                                }
+                            })
+                            .catch(error => {
+                                clearTimeout(timeoutId);
+                                const errorMsg = error.name === 'AbortError' ? 'Request timeout' : error.message;
+
+                                if (retryCount < MAX_RETRIES) {
+                                    statusText.textContent = `Retrying chunk ${chunkIndex + 1}...`;
+                                    setTimeout(() => uploadChunk(chunkIndex, retryCount + 1), RETRY_DELAY * (retryCount + 1));
+                                } else {
+                                    statusText.textContent = `Failed to upload chunk ${chunkIndex + 1}`;
+                                    resultText.textContent = `Upload failed: ${errorMsg}`;
+                                    result.hidden = false;
+                                }
+                            });
+                    }
+
+                    uploadChunk(0);
+                }
+
+                function generateUploadId() {
+                    return 'upload_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                }
+
+                function formatBytes(bytes) {
+                    if (bytes === 0) return '0 Bytes';
+                    const k = 1024;
+                    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+                    const i = Math.floor(Math.log(bytes) / Math.log(k));
+                    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
+                }
+
+                document.getElementById('copyUrlBtn').addEventListener('click', function () {
+                    const urlInput = document.getElementById('publicUrl');
+                    navigator.clipboard.writeText(urlInput.value).then(() => {
+                        this.textContent = 'Copied!';
+                        setTimeout(() => { this.textContent = 'Copy URL'; }, 2000);
+                    });
+                });
+            </script>
+        </div>
+        
+    </main>
+    <div class="footer">
+        <p><a href="https://github.com/jam06452/URL_Shortener">Made with ❤️ by jam06452</a> <br> and ui by <a href="https://tomwebsites.nl">Tom de Jong</a></p>
+    </div>
 </body>
+
 </html>
