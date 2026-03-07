@@ -8,7 +8,7 @@ defmodule Exapi.Backend do
       case Exapi.DB.read_encoded(url, message) do
         # Assigns encoded to the encoded, hashed string of the url, then is saved
         nil ->
-          encoded = url |> :erlang.crc32() |> Integer.to_string(36) |> String.downcase()
+          encoded = Word.random(100)
           encoded = if message, do: encoded <> "~", else: encoded
           Task.start(Exapi.DB, :save, [encoded, url, message])
           encoded

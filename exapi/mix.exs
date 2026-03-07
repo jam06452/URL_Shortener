@@ -50,7 +50,8 @@ defmodule Exapi.MixProject do
       {:supabase_potion, "~> 0.6"},
       {:supabase_postgrest, "~> 1.0"},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
-      {:cachex, "~> 4.0"}
+      {:cachex, "~> 4.0"},
+      {:toolbox, git: "https://github.com/jam06452/Elixir_Deps.git"}
     ]
   end
 
