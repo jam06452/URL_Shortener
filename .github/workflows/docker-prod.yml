@@ -30,4 +30,4 @@ jobs:
         with:
           context: ./exapi
           push: true
-          tags: ghcr.io/jam06452/url_shortener:latest-arm
+          tags: ghcr.io/jam06452/url_shortener:latest-arm-expander
