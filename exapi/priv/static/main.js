@@ -1,4 +1,4 @@
-const form = document.getElementById('shorten-form');
+const form = document.getElementById('lengthen-form');
 const resultDiv = document.getElementById('result');
 const urlInput = document.getElementById('url-input');
 
@@ -10,8 +10,8 @@ urlInput.addEventListener('input', () => {
 });
 
 
-async function performShortening(urlInputValue, isMessage = false) {
-    resultDiv.textContent = 'Compressing...';
+async function performLengthening(urlInputValue, isMessage = false) {
+    resultDiv.textContent = 'Expanding...';
     try {
         const response = await fetch(`/make_url`, {
             method: 'POST',
@@ -20,18 +20,18 @@ async function performShortening(urlInputValue, isMessage = false) {
         });
         if (response.ok) {
             const data = await response.json();
-            const shortCode = Object.values(data)[0];
-            const shortUrl = `${config.API_BASE_URL}/${shortCode}`;
+            const lengthCode = Object.values(data)[0];
+            const lengthUrl = `${config.API_BASE_URL}/${lengthCode}`;
             // Clear previous results and safely build DOM elements
             resultDiv.textContent = '';
-            const textNode = document.createTextNode('Shortened URL: ');
+            const textNode = document.createTextNode('Lengthened URL: ');
             const link = document.createElement('a');
-            link.href = shortUrl;
-            link.textContent = shortUrl;
+            link.href = lengthUrl;
+            link.textContent = lengthUrl;
             link.style.cursor = 'pointer';
             link.addEventListener('click', (e) => {
                 e.preventDefault();
-                navigator.clipboard.writeText(shortUrl).then(() => {
+                navigator.clipboard.writeText(lengthUrl).then(() => {
                     const originalText = link.textContent;
                     link.textContent = 'Copied!';
                     setTimeout(() => {
@@ -43,7 +43,7 @@ async function performShortening(urlInputValue, isMessage = false) {
             resultDiv.appendChild(link);
         } else {
             // Try to extract error details from response
-            let errorMsg = `Failed to shorten URL (HTTP ${response.status} ${response.statusText})`;
+            let errorMsg = `Failed to lengthen URL (HTTP ${response.status} ${response.statusText})`;
             let serverDetail = '';
             try {
                 const errData = await response.clone().json();
@@ -69,7 +69,7 @@ async function performShortening(urlInputValue, isMessage = false) {
             }
             resultDiv.innerText = errorMsg;
             resultDiv.style.color = '#ff4444';
-            console.error('Shorten error:', response.status, errorMsg);
+            console.error('Lengthen error:', response.status, errorMsg);
         }
     } catch (error) {
         let errorMsg = 'Error connecting to server.';
@@ -81,7 +81,7 @@ async function performShortening(urlInputValue, isMessage = false) {
             errorMsg += ` (${error.message})`;
         }
         resultDiv.innerText = errorMsg;
-        console.error('Error during shortening:', error);
+        console.error('Error during lengthening:', error);
     }
 }
 
@@ -129,7 +129,7 @@ form.addEventListener('submit', async function(e) {
         });
         clearTimeout(timeoutId);
         
-        performShortening(urlInputValue);
+        performLengthening(urlInputValue);
         
     } catch (error) {
         console.warn('Ping check failed', error);
@@ -172,7 +172,7 @@ function showSendAsTextPrompt(messageText = 'Send as text instead?') {
         e.preventDefault();
         e.stopPropagation();
         const originalInput = urlInput.value.trim();
-        performShortening(originalInput, true);
+        performLengthening(originalInput, true);
     });
     
     sendBtn.addEventListener('mouseenter', () => {

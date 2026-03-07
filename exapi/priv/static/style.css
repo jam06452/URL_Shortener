@@ -306,7 +306,7 @@ h1:hover::after {
 
 /* Brutalist label */
 .input-group::before {
-    content: '// PASTE YOUR EXCESSIVELY LONG URL HERE';
+    content: '// PASTE YOUR SHORT URL HERE';
     position: absolute;
     top: 1rem;
     left: 2rem;
