@@ -1,234 +1,241 @@
-const form = document.getElementById('lengthen-form');
-const resultDiv = document.getElementById('result');
-const urlInput = document.getElementById('url-input');
+// Wait for DOM to be ready
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('lengthen-form');
+    const resultDiv = document.getElementById('result');
+    const urlInput = document.getElementById('url-input');
 
-// Clear result when user types in the input
-urlInput.addEventListener('input', () => {
-    if (resultDiv.innerHTML) {
-        resultDiv.innerHTML = '';
+    if (!form || !resultDiv || !urlInput) {
+        console.error('Form elements not found');
+        return;
     }
-});
 
+    // Clear result when user types in the input
+    urlInput.addEventListener('input', () => {
+        if (resultDiv.innerHTML) {
+            resultDiv.innerHTML = '';
+        }
+    });
 
-async function performLengthening(urlInputValue, isMessage = false) {
-    resultDiv.textContent = 'Expanding...';
-    try {
-        const response = await fetch(`/make_url`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ url: urlInputValue, message: isMessage })
-        });
-        if (response.ok) {
-            const data = await response.json();
-            const lengthCode = Object.values(data)[0];
-            const lengthUrl = `${config.API_BASE_URL}/${lengthCode}`;
-            // Clear previous results and safely build DOM elements
-            resultDiv.textContent = '';
-            const textNode = document.createTextNode('Lengthened URL: ');
-            const link = document.createElement('a');
-            link.href = lengthUrl;
-            link.textContent = lengthUrl;
-            link.style.cursor = 'pointer';
-            link.addEventListener('click', (e) => {
-                e.preventDefault();
-                navigator.clipboard.writeText(lengthUrl).then(() => {
-                    const originalText = link.textContent;
-                    link.textContent = 'Copied!';
-                    setTimeout(() => {
-                        link.textContent = originalText;
-                    }, 1500);
-                });
+    async function performLengthening(urlInputValue, isMessage = false) {
+        resultDiv.textContent = 'Expanding...';
+        try {
+            const response = await fetch(`/make_url`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url: urlInputValue, message: isMessage })
             });
-            resultDiv.appendChild(textNode);
-            resultDiv.appendChild(link);
-        } else {
-            // Try to extract error details from response
-            let errorMsg = `Failed to lengthen URL (HTTP ${response.status} ${response.statusText})`;
-            let serverDetail = '';
-            try {
-                const errData = await response.clone().json();
-                if (errData && errData.error) {
-                    serverDetail = errData.error;
-                } else if (errData && errData.message) {
-                    serverDetail = errData.message;
-                } else {
-                    serverDetail = JSON.stringify(errData);
-                }
-            } catch (jsonErr) {
+            if (response.ok) {
+                const data = await response.json();
+                const lengthCode = Object.values(data)[0];
+                const lengthUrl = `${config.API_BASE_URL}/${lengthCode}`;
+                // Clear previous results and safely build DOM elements
+                resultDiv.textContent = '';
+                const textNode = document.createTextNode('Lengthened URL: ');
+                const link = document.createElement('a');
+                link.href = lengthUrl;
+                link.textContent = lengthUrl;
+                link.style.cursor = 'pointer';
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    navigator.clipboard.writeText(lengthUrl).then(() => {
+                        const originalText = link.textContent;
+                        link.textContent = 'Copied!';
+                        setTimeout(() => {
+                            link.textContent = originalText;
+                        }, 1500);
+                    });
+                });
+                resultDiv.appendChild(textNode);
+                resultDiv.appendChild(link);
+            } else {
+                // Try to extract error details from response
+                let errorMsg = `Failed to lengthen URL (HTTP ${response.status} ${response.statusText})`;
+                let serverDetail = '';
                 try {
-                    const errText = await response.clone().text();
-                    if (errText && errText.length < 200) {
-                        serverDetail = errText;
+                    const errData = await response.clone().json();
+                    if (errData && errData.error) {
+                        serverDetail = errData.error;
+                    } else if (errData && errData.message) {
+                        serverDetail = errData.message;
+                    } else {
+                        serverDetail = JSON.stringify(errData);
                     }
-                } catch (textErr) {
-                    // Ignore
+                } catch (jsonErr) {
+                    try {
+                        const errText = await response.clone().text();
+                        if (errText && errText.length < 200) {
+                            serverDetail = errText;
+                        }
+                    } catch (textErr) {
+                        // Ignore
+                    }
                 }
+                if (serverDetail) {
+                    errorMsg += `\nDetails: ${serverDetail}`;
+                }
+                resultDiv.innerText = errorMsg;
+                resultDiv.style.color = '#ff4444';
+                console.error('Lengthen error:', response.status, errorMsg);
             }
-            if (serverDetail) {
-                errorMsg += `\nDetails: ${serverDetail}`;
+        } catch (error) {
+            let errorMsg = 'Error connecting to server.';
+            if (error.name === 'TypeError') {
+                errorMsg += ' (Network error or CORS issue)';
+            } else if (error.name === 'AbortError') {
+                errorMsg += ' (Request timed out)';
+            } else {
+                errorMsg += ` (${error.message})`;
             }
             resultDiv.innerText = errorMsg;
-            resultDiv.style.color = '#ff4444';
-            console.error('Lengthen error:', response.status, errorMsg);
+            console.error('Error during lengthening:', error);
         }
-    } catch (error) {
-        let errorMsg = 'Error connecting to server.';
-        if (error.name === 'TypeError') {
-            errorMsg += ' (Network error or CORS issue)';
-        } else if (error.name === 'AbortError') {
-            errorMsg += ' (Request timed out)';
-        } else {
-            errorMsg += ` (${error.message})`;
-        }
-        resultDiv.innerText = errorMsg;
-        console.error('Error during lengthening:', error);
-    }
-}
-
-form.addEventListener('submit', async function(e) {
-    e.preventDefault();
-    let urlInputValue = urlInput.value.trim();
-    
-    // Check if input has a dot - if not, treat as message
-    if (!urlInputValue.includes('.')) {
-        showSendAsTextPrompt('Would you like to send this as a message?');
-        return;
-    }
-    
-    // URL mode - apply URL validation and formatting
-    // Basic Protocol Auto-fix
-    if (!/^https?:\/\//i.test(urlInputValue)) {
-        urlInputValue = 'https://' + urlInputValue;
     }
 
-    // Remove www. and trailing slash
-    urlInputValue = urlInputValue.replace(/^(https?:\/\/)(www\.)/, '$1');
-    if (urlInputValue.endsWith('/')) {
-        urlInputValue = urlInputValue.slice(0, -1);
-    }
-
-    // URL Syntax Validation
-    try {
-        new URL(urlInputValue);
-    } catch (err) {
-        resultDiv.innerText = 'Invalid URL format. Please include http:// or https://';
-        return;
-    }
-
-    resultDiv.innerText = 'Verifying site reachability...';
-
-    try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 2000);
+    function showSendAsTextPrompt(messageText = 'Send as text instead?') {
+        // Build error UI instantly all at once
+        const msg = document.createElement('div');
+        msg.textContent = messageText;
+        msg.style.color = '#ff4444';
+        msg.style.marginBottom = '1rem';
+        msg.style.fontWeight = '900';
+        msg.style.letterSpacing = '0.05em';
         
-        await fetch(urlInputValue, { 
-            method: 'GET', 
-            mode: 'no-cors',
-            credentials: 'omit',
-            signal: controller.signal 
-        });
-        clearTimeout(timeoutId);
+        const btnContainer = document.createElement('div');
+        btnContainer.style.display = 'flex';
+        btnContainer.style.gap = '1rem';
+        btnContainer.style.marginTop = '1rem';
         
-        performLengthening(urlInputValue);
-        
-    } catch (error) {
-        console.warn('Ping check failed', error);
-        showSendAsTextPrompt('Site not reachable. Send as text instead?');
-    }
-});
-
-function showSendAsTextPrompt(messageText = 'Send as text instead?') {
-    // Build error UI instantly all at once
-    const msg = document.createElement('div');
-    msg.textContent = messageText;
-    msg.style.color = '#ff4444';
-    msg.style.marginBottom = '1rem';
-    msg.style.fontWeight = '900';
-    msg.style.letterSpacing = '0.05em';
-    
-    const btnContainer = document.createElement('div');
-    btnContainer.style.display = 'flex';
-    btnContainer.style.gap = '1rem';
-    btnContainer.style.marginTop = '1rem';
-    
-    const sendBtn = document.createElement('button');
-    sendBtn.type = 'button';
-    sendBtn.textContent = 'SEND AS MESSAGE';
-    sendBtn.style.flex = '1';
-    sendBtn.style.padding = '1rem';
-    sendBtn.style.background = 'var(--magenta)';
-    sendBtn.style.color = 'var(--bg-deep)';
-    sendBtn.style.border = '3px solid var(--magenta)';
-    sendBtn.style.fontFamily = "'Arial Black', sans-serif";
-    sendBtn.style.fontSize = '0.9rem';
-    sendBtn.style.fontWeight = '900';
-    sendBtn.style.textTransform = 'uppercase';
-    sendBtn.style.letterSpacing = '0.1em';
-    sendBtn.style.cursor = 'pointer';
-    sendBtn.style.transition = 'all 0.15s ease-out';
-    sendBtn.style.boxShadow = '3px 3px 0 var(--yellow)';
-    
-    sendBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        const originalInput = urlInput.value.trim();
-        performLengthening(originalInput, true);
-    });
-    
-    sendBtn.addEventListener('mouseenter', () => {
-        sendBtn.style.background = 'var(--yellow)';
-        sendBtn.style.borderColor = 'var(--yellow)';
-        sendBtn.style.transform = 'translate(-2px, -2px)';
-        sendBtn.style.boxShadow = '5px 5px 0 var(--magenta)';
-    });
-    
-    sendBtn.addEventListener('mouseleave', () => {
+        const sendBtn = document.createElement('button');
+        sendBtn.type = 'button';
+        sendBtn.textContent = 'SEND AS MESSAGE';
+        sendBtn.style.flex = '1';
+        sendBtn.style.padding = '1rem';
         sendBtn.style.background = 'var(--magenta)';
-        sendBtn.style.borderColor = 'var(--magenta)';
-        sendBtn.style.transform = 'translate(0, 0)';
+        sendBtn.style.color = 'var(--bg-deep)';
+        sendBtn.style.border = '3px solid var(--magenta)';
+        sendBtn.style.fontFamily = "'Arial Black', sans-serif";
+        sendBtn.style.fontSize = '0.9rem';
+        sendBtn.style.fontWeight = '900';
+        sendBtn.style.textTransform = 'uppercase';
+        sendBtn.style.letterSpacing = '0.1em';
+        sendBtn.style.cursor = 'pointer';
+        sendBtn.style.transition = 'all 0.15s ease-out';
         sendBtn.style.boxShadow = '3px 3px 0 var(--yellow)';
-    });
-    
-    const cancelBtn = document.createElement('button');
-    cancelBtn.type = 'button';
-    cancelBtn.textContent = 'CANCEL';
-    cancelBtn.style.flex = '1';
-    cancelBtn.style.padding = '1rem';
-    cancelBtn.style.background = 'transparent';
-    cancelBtn.style.color = 'var(--text-secondary)';
-    cancelBtn.style.border = '2px solid var(--text-secondary)';
-    cancelBtn.style.fontFamily = "'Arial Black', sans-serif";
-    cancelBtn.style.fontSize = '0.9rem';
-    cancelBtn.style.fontWeight = '900';
-    cancelBtn.style.textTransform = 'uppercase';
-    cancelBtn.style.letterSpacing = '0.1em';
-    cancelBtn.style.cursor = 'pointer';
-    cancelBtn.style.transition = 'all 0.15s ease-out';
-    
-    cancelBtn.addEventListener('click', () => {
-        resultDiv.style.animation = 'slideUp 0.25s ease-out';
-        setTimeout(() => {
-            resultDiv.innerHTML = '';
-            resultDiv.style.animation = '';
-        }, 250);
-    });
-    
-    cancelBtn.addEventListener('mouseenter', () => {
-        cancelBtn.style.color = 'var(--white)';
-        cancelBtn.style.borderColor = 'var(--white)';
-    });
-    
-    cancelBtn.addEventListener('mouseleave', () => {
+        
+        sendBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const originalInput = urlInput.value.trim();
+            performLengthening(originalInput, true);
+        });
+        
+        sendBtn.addEventListener('mouseenter', () => {
+            sendBtn.style.background = 'var(--yellow)';
+            sendBtn.style.borderColor = 'var(--yellow)';
+            sendBtn.style.transform = 'translate(-2px, -2px)';
+            sendBtn.style.boxShadow = '5px 5px 0 var(--magenta)';
+        });
+        
+        sendBtn.addEventListener('mouseleave', () => {
+            sendBtn.style.background = 'var(--magenta)';
+            sendBtn.style.borderColor = 'var(--magenta)';
+            sendBtn.style.transform = 'translate(0, 0)';
+            sendBtn.style.boxShadow = '3px 3px 0 var(--yellow)';
+        });
+        
+        const cancelBtn = document.createElement('button');
+        cancelBtn.type = 'button';
+        cancelBtn.textContent = 'CANCEL';
+        cancelBtn.style.flex = '1';
+        cancelBtn.style.padding = '1rem';
+        cancelBtn.style.background = 'transparent';
         cancelBtn.style.color = 'var(--text-secondary)';
-        cancelBtn.style.borderColor = 'var(--text-secondary)';
+        cancelBtn.style.border = '2px solid var(--text-secondary)';
+        cancelBtn.style.fontFamily = "'Arial Black', sans-serif";
+        cancelBtn.style.fontSize = '0.9rem';
+        cancelBtn.style.fontWeight = '900';
+        cancelBtn.style.textTransform = 'uppercase';
+        cancelBtn.style.letterSpacing = '0.1em';
+        cancelBtn.style.cursor = 'pointer';
+        cancelBtn.style.transition = 'all 0.15s ease-out';
+        
+        cancelBtn.addEventListener('click', () => {
+            resultDiv.style.animation = 'slideUp 0.25s ease-out';
+            setTimeout(() => {
+                resultDiv.innerHTML = '';
+                resultDiv.style.animation = '';
+            }, 250);
+        });
+        
+        cancelBtn.addEventListener('mouseenter', () => {
+            cancelBtn.style.color = 'var(--white)';
+            cancelBtn.style.borderColor = 'var(--white)';
+        });
+        
+        cancelBtn.addEventListener('mouseleave', () => {
+            cancelBtn.style.color = 'var(--text-secondary)';
+            cancelBtn.style.borderColor = 'var(--text-secondary)';
+        });
+        
+        btnContainer.appendChild(sendBtn);
+        btnContainer.appendChild(cancelBtn);
+        
+        // Clear and build all elements at once, THEN animate
+        resultDiv.innerHTML = '';
+        resultDiv.appendChild(msg);
+        resultDiv.appendChild(btnContainer);
+        resultDiv.style.animation = 'slideDown 0.25s ease-out';
+    }
+
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        let urlInputValue = urlInput.value.trim();
+        
+        // Check if input has a dot - if not, treat as message
+        if (!urlInputValue.includes('.')) {
+            showSendAsTextPrompt('Would you like to send this as a message?');
+            return;
+        }
+        
+        // URL mode - apply URL validation and formatting
+        // Basic Protocol Auto-fix
+        if (!/^https?:\/\//i.test(urlInputValue)) {
+            urlInputValue = 'https://' + urlInputValue;
+        }
+
+        // Remove www. and trailing slash
+        urlInputValue = urlInputValue.replace(/^(https?:\/\/)(www\.)/, '$1');
+        if (urlInputValue.endsWith('/')) {
+            urlInputValue = urlInputValue.slice(0, -1);
+        }
+
+        // URL Syntax Validation
+        try {
+            new URL(urlInputValue);
+        } catch (err) {
+            resultDiv.innerText = 'Invalid URL format. Please include http:// or https://';
+            return;
+        }
+
+        resultDiv.innerText = 'Verifying site reachability...';
+
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 2000);
+            
+            await fetch(urlInputValue, { 
+                method: 'GET', 
+                mode: 'no-cors',
+                credentials: 'omit',
+                signal: controller.signal 
+            });
+            clearTimeout(timeoutId);
+            
+            performLengthening(urlInputValue);
+            
+        } catch (error) {
+            console.warn('Ping check failed', error);
+            showSendAsTextPrompt('Site not reachable. Send as text instead?');
+        }
     });
-    
-    btnContainer.appendChild(sendBtn);
-    btnContainer.appendChild(cancelBtn);
-    
-    // Clear and build all elements at once, THEN animate
-    resultDiv.innerHTML = '';
-    resultDiv.appendChild(msg);
-    resultDiv.appendChild(btnContainer);
-    resultDiv.style.animation = 'slideDown 0.25s ease-out';
-}
+});
