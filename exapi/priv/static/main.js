@@ -13,7 +13,7 @@ urlInput.addEventListener('input', () => {
 async function performShortening(urlInputValue, isMessage = false) {
     resultDiv.textContent = 'Compressing...';
     try {
-        const response = await fetch(`${config.API_BASE_URL}/make_url`, {
+        const response = await fetch(`/make_url`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ url: urlInputValue, message: isMessage })
@@ -21,7 +21,7 @@ async function performShortening(urlInputValue, isMessage = false) {
         if (response.ok) {
             const data = await response.json();
             const shortCode = Object.values(data)[0];
-            const shortUrl = `https://url.jam06452.uk/${shortCode}`;
+            const shortUrl = `${config.API_BASE_URL}/${shortCode}`;
             // Clear previous results and safely build DOM elements
             resultDiv.textContent = '';
             const textNode = document.createTextNode('Shortened URL: ');
