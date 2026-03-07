@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - url_expander
     paths:
       - 'exapi/**'
 
@@ -30,4 +31,4 @@ jobs:
         with:
           context: ./exapi
           push: true
-          tags: ghcr.io/jam06452/url_shortener:latest
+          tags: ghcr.io/jam06452/url_shortener:${{ github.ref_name == 'url_expander' && 'latest-expander' || 'latest' }}
