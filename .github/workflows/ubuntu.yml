@@ -1,9 +1,9 @@
-name: Docker Prod x86
+name: Docker Prod x86 expander
 on:
   workflow_dispatch:
   push:
     branches:
-      - main
+      - expander
     paths:
       - 'exapi/**'
 
