@@ -34,6 +34,12 @@ mix phx.server
 ## Performance
 - Initial encoding takes approximately ~ 15 milliseconds, after verification of the URL
 - Redirects take approximately ~ 150 microseconds.
+
+## Optimizations
+- Added Prewarming redirect caching to improve times from 5ms to 150µs
+- Instead of directing my backend to the supabase backend via cloudflare (supabase.jam06452.uk), I changed it for the interal machine address
+- Instead of writing directly to database syncronosly, I changed it to use async to run it in the backround for time improvements from 150ms to 5ms
+- Use of Cachex.fetch!() to see if the redirect was in the cache already, if it was not, it gets it from the database and puts it in cache
 ## Tech stack
 - Supabase for DB
 - Cachex for caching within Elixir
