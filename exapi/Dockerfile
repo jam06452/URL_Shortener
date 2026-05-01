@@ -16,7 +16,7 @@ RUN mix release
 
 FROM alpine:3.18
 
-RUN apk add --no-cache libstdc++ openssl ncurses-libs
+RUN apk add --no-cache libstdc++ openssl ncurses-libs curl
 
 WORKDIR /app
 
