@@ -8,7 +8,9 @@ defmodule Exapi.Backend do
       case Exapi.DB.read_encoded(url, message) do
         # Assigns encoded to the encoded, hashed string of the url, then is saved
         nil ->
-          encoded = url |> :erlang.crc32() |> Integer.to_string(36) |> String.downcase()
+          encoded =
+            :crypto.strong_rand_bytes(4) |> Base.encode32(padding: false) |> binary_part(0, 6)
+
           encoded = if message, do: encoded <> "~", else: encoded
           Task.start(Exapi.DB, :save, [encoded, url, message])
           encoded
@@ -22,7 +24,7 @@ defmodule Exapi.Backend do
     encoded
   end
 
-  #Calls click function on SB, tries to read from cache, if nil, read straight from DB and stores in cache
+  # Calls click function on SB, tries to read from cache, if nil, read straight from DB and stores in cache
   def decode(encoded, message) do
     Task.start(Exapi.DB, :add_click, [encoded, message])
     {_, url} = Cachex.fetch(:cache, encoded, fn -> Exapi.DB.read_decoded(encoded, message) end)
